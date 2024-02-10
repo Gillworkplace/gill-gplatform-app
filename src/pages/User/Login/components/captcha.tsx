@@ -4,6 +4,7 @@ import { useRequest } from 'ahooks';
 import { Input, Spin } from 'antd';
 import { createStyles } from 'antd-style';
 import axios from 'axios';
+import React from 'react';
 
 const randomCode = randomString(8);
 
@@ -15,10 +16,13 @@ const Captcha: React.FC = () => {
       },
       input: {
         flex: 2,
-        marginRight: '10px',
       },
       img: {
         flex: 1,
+        marginLeft: '15px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
       },
     };
   })();
@@ -53,7 +57,14 @@ const Captcha: React.FC = () => {
         {loading ? (
           <Spin />
         ) : (
-          <img alt="captcha" src={imgUrl} width="100px" height="30px" onClick={() => run()} />
+          <img
+            alt="captcha"
+            src={imgUrl}
+            width="100px"
+            height="30px"
+            onClick={() => run()}
+            style={{ zIndex: 999, cursor: 'pointer' }}
+          />
         )}
       </div>
     </div>
