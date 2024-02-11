@@ -2,6 +2,7 @@
  * 获取随机字符串
  * @param len
  */
+
 export function randomString(len: number): string {
   let fLen = len || 32;
   /****默认去掉了容易混淆的字符oOLl,9gq,Vv,Uu,I1****/
