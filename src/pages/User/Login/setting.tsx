@@ -10,6 +10,7 @@ const LoginSetting = {
   row: {
     marginBottom: '24px',
   },
+  defaultError: '系统异常',
 };
 
 export default LoginSetting;

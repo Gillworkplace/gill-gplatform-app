@@ -1,8 +1,10 @@
-import Captcha from '@/pages/User/Login/components/captcha';
-import LoginSetting from '@/pages/User/Login/setting';
-import { Button, Form, Input, Tooltip } from 'antd';
+import Captcha, { ICaptcha } from '@/pages/User/Login/components/captcha';
+import { default as LoginSetting, default as Setting } from '@/pages/User/Login/setting';
+import { LoadingOutlined } from '@ant-design/icons';
+import { Alert, Button, Form, Input, Spin, Tooltip } from 'antd';
 import { createStyles } from 'antd-style';
-import React, { useState } from 'react';
+import axios from 'axios';
+import React, { useRef, useState } from 'react';
 
 const accountTips = '6-16位数字、大小写英文字母';
 const passwordTips = '6-16位数字、大小写英文字母以及.!@#-=$%^&*:;';
@@ -11,13 +13,6 @@ const nickTips = '1-16位数字、大小写英文字母、"_"以及中文';
 type Props = {
   randomCode: string;
   setPage?: (page: number) => void;
-};
-
-type RegisterParam = {
-  username: string;
-  password: string;
-  nickName: string;
-  captcha: string;
 };
 
 const RegisterPage: React.FC<Props> = (props) => {
@@ -49,21 +44,13 @@ const RegisterPage: React.FC<Props> = (props) => {
   })();
 
   const [username, setUsername] = useState('');
-
   const [password, setPassword] = useState('');
-
   const [nickName, setNickName] = useState('');
-
   const [captcha, setCaptcha] = useState('');
+  const [error, setError] = useState<string | undefined>(undefined);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  function getParam(): RegisterParam {
-    return {
-      username,
-      password,
-      nickName,
-      captcha,
-    };
-  }
+  const captchaRef = useRef<ICaptcha>();
 
   function handleUsernameChange(username: string): void {
     setUsername(username);
@@ -82,74 +69,117 @@ const RegisterPage: React.FC<Props> = (props) => {
   }
 
   function handleRegister() {
-    const param = getParam();
-    console.log(param);
+    setLoading(true);
+    axios
+      .post('/api/user/register', {
+        randomCode: props.randomCode,
+        captchaCode: captcha,
+        username,
+        password,
+        nickName,
+      })
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((e) => {
+        setError(e?.response?.data?.message ?? Setting.defaultError);
+      })
+      .finally(() => {
+        captchaRef.current?.refresh();
+        setLoading(false);
+      });
   }
 
   return (
     <div className={styles.container}>
-      <Form layout="horizontal" labelAlign="left">
-        <Form.Item rules={[{ required: true }]} tooltip={accountTips}>
-          <Tooltip trigger={['focus']} title={accountTips} placement="topLeft">
-            <Input
-              size="large"
-              prefix={<span className={styles.prefix}>账号</span>}
-              maxLength={16}
-              onChange={(e) => handleUsernameChange(e.target.value)}
+      <Spin
+        indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}
+        tip="注册中"
+        spinning={loading}
+      >
+        <Form layout="horizontal" labelAlign="left">
+          {error && (
+            <Alert
+              style={{
+                marginBottom: 24,
+              }}
+              message={error}
+              type="error"
+              showIcon
             />
-          </Tooltip>
-        </Form.Item>
-        <Form.Item rules={[{ required: true }]} tooltip={passwordTips}>
-          <Tooltip trigger={['focus']} title={passwordTips} placement="topLeft">
+          )}
+          <Form.Item rules={[{ required: true }]} tooltip={accountTips}>
+            <Tooltip trigger={['focus']} title={accountTips} placement="topLeft">
+              <Input
+                size="large"
+                prefix={<span className={styles.prefix}>账号</span>}
+                maxLength={16}
+                onChange={(e) => handleUsernameChange(e.target.value)}
+              />
+            </Tooltip>
+          </Form.Item>
+          <Form.Item rules={[{ required: true }]} tooltip={passwordTips}>
+            <Tooltip trigger={['focus']} title={passwordTips} placement="topLeft">
+              <Input.Password
+                size="large"
+                prefix={<span className={styles.prefix}>密码</span>}
+                maxLength={16}
+                onChange={(e) => handlePasswordChange(e.target.value)}
+              />
+            </Tooltip>
+          </Form.Item>
+          <Form.Item rules={[{ required: true }]}>
             <Input.Password
               size="large"
-              prefix={<span className={styles.prefix}>密码</span>}
+              prefix={<span className={styles.prefix}>确认密码</span>}
               maxLength={16}
-              onChange={(e) => handlePasswordChange(e.target.value)}
             />
-          </Tooltip>
-        </Form.Item>
-        <Form.Item rules={[{ required: true }]}>
-          <Input.Password
-            size="large"
-            prefix={<span className={styles.prefix}>确认密码</span>}
-            maxLength={16}
-          />
-        </Form.Item>
-        <Form.Item rules={[{ required: true }]} tooltip={nickTips}>
-          <Tooltip trigger={['focus']} title={nickTips} placement="topLeft">
-            <Input
-              size="large"
-              prefix={<span className={styles.prefix}>昵称</span>}
-              maxLength={16}
-              onChange={(e) => handleNickNameChange(e.target.value)}
-            />
-          </Tooltip>
-        </Form.Item>
-        <Form.Item>
-          <Captcha randomCode={props.randomCode} refresh={handleCaptchaChange} />
-        </Form.Item>
-        <Form.Item>
-          <div className={styles.buttonRow}>
-            <div className={styles.button}>
-              <Button type="primary" size="large" htmlType="submit" onClick={handleRegister} block>
-                注册
-              </Button>
-            </div>
-            <div className={styles.button}>
-              <Button
-                type="primary"
+          </Form.Item>
+          <Form.Item rules={[{ required: true }]} tooltip={nickTips}>
+            <Tooltip trigger={['focus']} title={nickTips} placement="topLeft">
+              <Input
                 size="large"
-                htmlType="button"
-                onClick={() => props.setPage?.(0)}
-                block
-              >
-                返回
-              </Button>
+                prefix={<span className={styles.prefix}>昵称</span>}
+                maxLength={16}
+                onChange={(e) => handleNickNameChange(e.target.value)}
+              />
+            </Tooltip>
+          </Form.Item>
+          <Form.Item>
+            <Captcha
+              ref={captchaRef}
+              randomCode={props.randomCode}
+              onRefresh={handleCaptchaChange}
+            />
+          </Form.Item>
+          <Form.Item>
+            <div className={styles.buttonRow}>
+              <div className={styles.button}>
+                <Button
+                  type="primary"
+                  size="large"
+                  htmlType="submit"
+                  onClick={handleRegister}
+                  block
+                >
+                  注册
+                </Button>
+              </div>
+              <div className={styles.button}>
+                <Button
+                  type="primary"
+                  size="large"
+                  htmlType="button"
+                  onClick={() => props.setPage?.(0)}
+                  block
+                >
+                  返回
+                </Button>
+              </div>
             </div>
-          </div>
-        </Form.Item>
-      </Form>
+          </Form.Item>
+        </Form>
+      </Spin>
     </div>
   );
 };

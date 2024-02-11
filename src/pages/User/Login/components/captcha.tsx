@@ -6,12 +6,16 @@ import { createStyles } from 'antd-style';
 import axios from 'axios';
 import React from 'react';
 
-interface CaptchaProps {
+type CaptchaProps = {
   randomCode: string;
-  refresh?: (captcha: string) => void;
+  onRefresh?: (captcha: string) => void;
+};
+
+export interface ICaptcha {
+  refresh: () => void;
 }
 
-const Captcha: React.FC<CaptchaProps> = ({ randomCode, refresh }) => {
+const Captcha = React.forwardRef<any, CaptchaProps>((props, ref?) => {
   const { styles } = createStyles(() => {
     return {
       container: {
@@ -33,22 +37,15 @@ const Captcha: React.FC<CaptchaProps> = ({ randomCode, refresh }) => {
     };
   })();
 
-  function handleCaptchaChange(event: React.ChangeEvent<HTMLInputElement>): void {
-    if (refresh) {
-      refresh(event.target.value);
-    }
-  }
-
   const {
     loading,
     data: imgUrl,
     run,
-  } = useRequest(() => {
-    return axios
+  } = useRequest(() =>
+    axios
       .get('/api/user/captcha', {
-        method: 'GET',
         params: {
-          randomCode: randomCode,
+          randomCode: props.randomCode,
         },
         responseType: 'blob',
       })
@@ -57,7 +54,21 @@ const Captcha: React.FC<CaptchaProps> = ({ randomCode, refresh }) => {
       })
       .catch(() => {
         return '';
-      });
+      }),
+  );
+
+  function refresh(): void {
+    run();
+  }
+
+  function handleCaptchaChange(event: React.ChangeEvent<HTMLInputElement>): void {
+    props.onRefresh?.(event.target.value);
+  }
+
+  React.useImperativeHandle<any, ICaptcha>(ref, () => {
+    return {
+      refresh,
+    };
   });
 
   return (
@@ -86,6 +97,6 @@ const Captcha: React.FC<CaptchaProps> = ({ randomCode, refresh }) => {
       </div>
     </div>
   );
-};
+});
 
 export default Captcha;
