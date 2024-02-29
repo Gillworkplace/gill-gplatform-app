@@ -65,14 +65,14 @@ const LoginPage: React.FC<Props> = (props) => {
   function handleLogin() {
     setLoading(true);
     axios
-      .post('/api/user/login', {
+      .post<API.ResultWrapper<string>>('/api/user/login', {
         username,
         password,
         captchaCode: captcha,
         randomCode: props.randomCode,
       })
-      .then((res) => {
-        console.log(res);
+      .then(({ data }) => {
+        location.assign(data.data);
       })
       .catch((e) => {
         setError(e?.response?.data?.message ?? Setting.defaultError);

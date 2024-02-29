@@ -3,12 +3,9 @@
 import { request } from '@umijs/max';
 
 /** 获取当前的用户 GET /api/currentUser */
-export async function currentUser(options?: { [key: string]: any }) {
-  return request<{
-    data: API.CurrentUser;
-  }>('/api/currentUser', {
+export async function currentUser() {
+  return request<API.ResultWrapper<API.CurrentUser>>('/api/user/info', {
     method: 'GET',
-    ...(options || {}),
   });
 }
 
@@ -90,5 +87,14 @@ export async function removeRule(options?: { [key: string]: any }) {
       method: 'delete',
       ...(options || {}),
     },
+  });
+}
+
+/**
+ * 获取资源前缀
+ */
+export async function getResourcePrefix() {
+  return request<API.ResultWrapper<string>>('/api/cloud/oss/resource/prefix', {
+    method: 'GET',
   });
 }
