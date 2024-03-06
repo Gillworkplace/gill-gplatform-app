@@ -8,6 +8,14 @@ import routes from './routes';
 const { REACT_APP_ENV = 'dev' } = process.env;
 export default defineConfig({
   /**
+   * https 配置
+   */
+  https: {
+    key: '0security/ca.key',
+    hosts: ['localhost', '192.168.16.173'],
+    cert: '0security/ca.crt',
+  },
+  /**
    * @name 开启 hash 模式
    * @description 让 build 之后的产物包含 hash 后缀。通常用于增量发布和避免浏览器加载缓存。
    * @doc https://umijs.org/docs/api/config#hash
