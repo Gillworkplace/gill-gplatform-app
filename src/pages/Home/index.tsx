@@ -1,79 +1,103 @@
+import { getInt32FromBlob } from '@/components/Util/common-util';
 import InfoCard from '@/pages/Home/components/InfoCard';
 import { PageContainer } from '@ant-design/pro-components';
-import { useModel } from '@umijs/max';
-import { Card, theme } from 'antd';
+import { Button, Card, theme } from 'antd';
+import { createStyles } from 'antd-style';
+import Cookies from 'js-cookie';
 import React from 'react';
 
 const Index: React.FC = () => {
   const { token } = theme.useToken();
-  const { initialState } = useModel('@@initialState');
+
+  const { styles } = createStyles(({}) => {
+    return {
+      outside: {
+        borderRadius: 8,
+      },
+      body: {
+        backgroundPosition: '100% -30%',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: '274px auto',
+      },
+      title: {
+        fontSize: '20px',
+        color: token.colorTextHeading,
+      },
+      desc: {
+        fontSize: '14px',
+        color: token.colorTextSecondary,
+        lineHeight: '22px',
+        marginTop: 16,
+        marginBottom: 32,
+        width: '65%',
+      },
+      wrapper: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 16,
+      },
+    };
+  })();
+
+  // test ws
+  const test = () => {
+    console.log(1);
+    const uid = Cookies.get('uid');
+    const tid = Cookies.get('tid');
+    const room = 1;
+    const ws = new WebSocket(`ws://localhost:9011/voice/ws?uid=${uid}&tid=${tid}&room=${room}`);
+    ws.onopen = () => {
+      console.log('websocket 建立');
+    };
+    ws.onclose = () => {
+      console.log('websocket 关闭');
+    };
+    ws.onerror = (event: Event) => {
+      console.log('websocket 异常：', event);
+    };
+    ws.onmessage = async ({ data }: MessageEvent<Blob>) => {
+      console.log('websocket message:', data);
+      const uid = getInt32FromBlob(await data.slice(0, 4).arrayBuffer());
+      const voice = await data.slice(4).arrayBuffer();
+      console.log('uid', uid);
+      console.log('voice', voice);
+
+      const audioContext = new AudioContext();
+
+      // 创建 AudioBufferSourceNode
+      const audioSource = audioContext.createBufferSource();
+
+      // 解码 ArrayBuffer
+      audioContext.decodeAudioData(voice, (buffer) => {
+        // 设置音频源的音频数据
+        audioSource.buffer = buffer;
+
+        // 连接音频源到音频输出
+        audioSource.connect(audioContext.destination);
+
+        // 播放音频
+        audioSource.start();
+      });
+    };
+    console.log(2);
+  };
+
   return (
     <PageContainer>
-      <Card
-        style={{
-          borderRadius: 8,
-        }}
-        bodyStyle={{
-          backgroundImage:
-            initialState?.settings?.navTheme === 'realDark'
-              ? 'background-image: linear-gradient(75deg, #1A1B1F 0%, #191C1F 100%)'
-              : 'background-image: linear-gradient(75deg, #FBFDFF 0%, #F5F7FF 100%)',
-        }}
-      >
-        <div
-          style={{
-            backgroundPosition: '100% -30%',
-            backgroundRepeat: 'no-repeat',
-            backgroundSize: '274px auto',
-            backgroundImage:
-              "url('https://gw.alipayobjects.com/mdn/rms_a9745b/afts/img/A*BuFmQqsB2iAAAAAAAAAAAAAAARQnAQ')",
-          }}
-        >
-          <div
-            style={{
-              fontSize: '20px',
-              color: token.colorTextHeading,
-            }}
-          >
-            欢迎使用 Ant Design Pro
-          </div>
-          <p
-            style={{
-              fontSize: '14px',
-              color: token.colorTextSecondary,
-              lineHeight: '22px',
-              marginTop: 16,
-              marginBottom: 32,
-              width: '65%',
-            }}
-          >
-            Ant Design Pro 是一个整合了 umi，Ant Design 和 ProComponents
-            的脚手架方案。致力于在设计规范和基础组件的基础上，继续向上构建，提炼出典型模板/业务组件/配套设计资源，进一步提升企业级中后台产品设计研发过程中的『用户』和『设计者』的体验。
-          </p>
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 16,
-            }}
-          >
+      <Button type="primary" onClick={() => test()}>
+        test
+      </Button>
+      <Card className={styles.outside}>
+        <div className={styles.body}>
+          <div className={styles.title}>欢迎使用 Gill Platform</div>
+          <p className={styles.desc}>目前处于测试阶段，欢迎各位使用与测试。</p>
+          <div className={styles.wrapper}>
             <InfoCard
               index={1}
-              href="https://umijs.org/docs/introduce/introduce"
-              title="了解 umi"
-              desc="umi 是一个可扩展的企业级前端应用框架,umi 以路由为基础的，同时支持配置式路由和约定式路由，保证路由的功能完备，并以此进行功能扩展。"
-            />
-            <InfoCard
-              index={2}
-              title="了解 ant design"
-              href="https://ant.design"
-              desc="antd 是基于 Ant Design 设计体系的 React UI 组件库，主要用于研发企业级中后台产品。"
-            />
-            <InfoCard
-              index={3}
-              title="了解 Pro Components"
-              href="https://procomponents.ant.design"
-              desc="ProComponents 是一个基于 Ant Design 做了更高抽象的模板组件，以 一个组件就是一个页面为开发理念，为中后台开发带来更好的体验。"
+              href="/voice-chat"
+              title="语音聊天"
+              desc="提供多对多的实时语音聊天房间"
+              visible={true}
             />
           </div>
         </div>

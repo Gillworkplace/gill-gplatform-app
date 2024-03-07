@@ -17,6 +17,5 @@ declare module 'mockjs';
 declare module 'react-fittext';
 declare module 'bizcharts-plugin-slider';
 declare module 'react-particle-line';
-declare module 'js-cookie';
 
 declare const REACT_APP_ENV: 'test' | 'dev' | 'pre' | false;

@@ -14,3 +14,8 @@ export function randomString(len: number): string {
   }
   return str;
 }
+
+export function getInt32FromBlob(byteArray: ArrayBuffer): number {
+  const dataView = new DataView(byteArray);
+  return dataView.getInt32(0);
+}
