@@ -7110,7 +7110,6 @@ packages:
       ahooks-v3-count: 1.0.0
       dayjs: 1.11.10
       intersection-observer: 0.12.2
-      js-cookie: 2.2.1
       lodash: 4.17.21
       react: 18.2.0
       resize-observer-polyfill: 1.5.1
@@ -13459,10 +13458,6 @@ packages:
       - babel-plugin-macros
       - supports-color
       - ts-node
-    dev: true
-
-  /js-cookie@2.2.1:
-    resolution: {integrity: sha512-HvdH2LzI/EAZcUwA8+0nKNtWHqS+ZmijLA30RwZA0bo7ToCckjK5MkGhjED9KoRcXO6BaGI3I9UIzSA1FKFPOQ==}
     dev: true
 
   /js-levenshtein@1.1.6:

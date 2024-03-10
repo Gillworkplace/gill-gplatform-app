@@ -22,8 +22,8 @@ export default {
       changeOrigin: true,
       pathRewrite: { '^/api': '/' },
     },
-    '/websocket/voice': {
-      target: 'ws://localhost:9011',
+    '/websocket/media': {
+      target: 'ws://hwyun:9011',
       pathRewrite: { '^/websocket': '/' },
       ws: true,
     },

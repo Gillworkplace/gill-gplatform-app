@@ -14,6 +14,7 @@ export default defineConfig({
     key: '0security/ca.key',
     hosts: ['localhost', '192.168.16.173'],
     cert: '0security/ca.crt',
+    http2: false,
   },
   /**
    * @name 开启 hash 模式

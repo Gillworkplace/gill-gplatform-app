@@ -3,9 +3,9 @@ import {
   Table,
   createAnswerPeer,
   createCallerPeers,
-} from '@/pages/VoiceChat/components/rtc';
+} from '@/pages/VoiceChat/components/rtc_native';
 import Cookies from 'js-cookie';
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 type RtcPermission = {
   rtcToken: string;
@@ -50,27 +50,54 @@ const AudioMesh: React.FC<Props> = (props) => {
     );
   }
 
-  function joinRoom(message: RtcMessage) {
-    console.log('accept connection');
+  async function joinRoom(message: RtcMessage) {
     const permission: RtcPermission = JSON.parse(message.data);
+    console.log('accept connection', permission.socketIds.length);
     _rtcToken.current = permission.rtcToken;
     const newPeers = createCallerPeers(permission.socketIds, _stream.current!, transfer);
     _peers.current = {
       ..._peers.current,
       ...newPeers,
     };
+    for (let key in newPeers) {
+      if (newPeers.hasOwnProperty(key)) {
+        const peerWrapper = newPeers[key];
+        const offer = await peerWrapper.peer.createOffer();
+        await peerWrapper.peer.setLocalDescription(offer);
+        transfer('offer', peerWrapper.socketId, offer);
+      }
+    }
   }
 
-  async function handleCallSignal(message: RtcMessage) {
-    const peerWrapper = createAnswerPeer(message.from!, _stream.current!, transfer);
-    const signalData = JSON.parse(message.data);
-    peerWrapper.peer.signal(signalData);
-  }
-
-  async function handleAnswerSignal(message: RtcMessage) {
+  async function handleOffer(message: RtcMessage) {
+    console.log('answer receive answer', message);
     const peers = _peers.current;
-    const signalData = JSON.parse(message.data);
-    peers[message.from!].peer.signal(signalData);
+    const offer: RTCSessionDescriptionInit = JSON.parse(message.data);
+    const peerWrapper = await createAnswerPeer(message.from!, _stream.current!, offer, transfer);
+    peers[message.from!] = peerWrapper;
+    const answer = await peerWrapper.peer.createAnswer();
+    await peerWrapper.peer.setLocalDescription(answer);
+    transfer('answer', peerWrapper.socketId, answer);
+  }
+
+  async function handleAnswer(message: RtcMessage) {
+    console.log('caller receive answer', message);
+    const peers = _peers.current;
+    const peerWrapper = peers[message.from!];
+    const peer = peerWrapper.peer;
+    const answer: RTCSessionDescriptionInit = JSON.parse(message.data);
+    await peer.setRemoteDescription(answer);
+  }
+
+  async function handleCandidate(message: RtcMessage) {
+    const peers = _peers.current;
+    const peerWrapper = peers[message.from!];
+    const peer = peerWrapper.peer;
+    const candidate: RTCIceCandidateInit = JSON.parse(message.data);
+    peer
+      .addIceCandidate(candidate)
+      .then(() => console.log(`${peerWrapper.socketId} AddIceCandidate success.`))
+      .catch((e) => console.log(`Failed to add ICE candidate: ${e.toString()}`));
   }
 
   // 以上websocket事件处理
@@ -80,7 +107,7 @@ const AudioMesh: React.FC<Props> = (props) => {
     const tid = Cookies.get('tid');
     const room = props.roomId;
     const ws = new WebSocket(
-      `wss://192.168.16.173:8000/websocket/voice/webrtc/mesh?uid=${uid}&tid=${tid}&room=${room}`,
+      `wss://localhost:8000/websocket/media/webrtc/mesh?uid=${uid}&tid=${tid}&room=${room}`,
     );
     _ws.current = ws;
     ws.onopen = () => {
@@ -101,7 +128,7 @@ const AudioMesh: React.FC<Props> = (props) => {
   }
 
   function clearPeer(peerWrapper?: PeerWrapper) {
-    peerWrapper?.peer.destroy();
+    peerWrapper?.peer.close();
     peerWrapper?.audio.remove();
   }
 
@@ -134,8 +161,9 @@ const AudioMesh: React.FC<Props> = (props) => {
   }, []);
 
   dispatcher.set('accept_connection', joinRoom);
-  dispatcher.set('call_signal', handleCallSignal);
-  dispatcher.set('answer_signal', handleAnswerSignal);
+  dispatcher.set('offer', handleOffer);
+  dispatcher.set('answer', handleAnswer);
+  dispatcher.set('candidate', handleCandidate);
 
   return <></>;
 };

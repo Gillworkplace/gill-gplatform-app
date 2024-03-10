@@ -49,7 +49,6 @@
     "@ant-design/icons": "^4.8.1",
     "@ant-design/pro-components": "^2.6.48",
     "@types/js-cookie": "^3.0.6",
-    "@types/simple-peer": "^9.11.8",
     "@umijs/route-utils": "^2.2.2",
     "antd": "^5.13.2",
     "antd-style": "^3.6.1",
@@ -64,9 +63,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-helmet-async": "^1.3.0",
-    "react-particle-line": "^0.1.9",
-    "simple-peer": "^9.11.1",
-    "socket.io-client": "^4.7.4"
+    "react-particle-line": "^0.1.9"
   },
   "devDependencies": {
     "@ant-design/pro-cli": "^3.3.0",
