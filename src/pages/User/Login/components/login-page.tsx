@@ -1,9 +1,9 @@
 import Captcha, { ICaptcha } from '@/pages/User/Login/components/captcha';
-import { default as LoginSetting, default as Setting } from '@/pages/User/Login/setting';
+import { Setting } from '@/pages/setting';
 import { LoadingOutlined } from '@ant-design/icons';
+import { request } from '@umijs/max';
 import { Alert, Button, Form, Input, Spin, Tabs } from 'antd';
 import { createStyles } from 'antd-style';
-import axios from 'axios';
 import React, { useRef, useState } from 'react';
 
 type Props = {
@@ -17,23 +17,23 @@ const LoginPage: React.FC<Props> = (props) => {
       container: {
         margin: '0 auto',
         display: 'block',
-        width: LoginSetting.inputContainer.width,
-        minWidth: LoginSetting.inputContainer.minWidth,
-        maxWidth: LoginSetting.inputContainer.maxWidth,
+        width: Setting.inputContainer.width,
+        minWidth: Setting.inputContainer.minWidth,
+        maxWidth: Setting.inputContainer.maxWidth,
       },
       prefix: {
-        marginRight: LoginSetting.inputPrefix.marginRight,
+        marginRight: Setting.inputPrefix.marginRight,
       },
       item: {
-        marginBottom: LoginSetting.row.marginBottom,
+        marginBottom: Setting.row.marginBottom,
       },
       buttonRow: {
         margin: '36px auto',
         display: 'flex',
         justifyContent: 'space-between',
-        width: LoginSetting.inputContainer.width,
-        minWidth: LoginSetting.inputContainer.minWidth,
-        maxWidth: LoginSetting.inputContainer.maxWidth,
+        width: Setting.inputContainer.width,
+        minWidth: Setting.inputContainer.minWidth,
+        maxWidth: Setting.inputContainer.maxWidth,
       },
       button: {
         width: '140px',
@@ -64,14 +64,16 @@ const LoginPage: React.FC<Props> = (props) => {
 
   function handleLogin() {
     setLoading(true);
-    axios
-      .post<API.ResultWrapper<string>>('/api/user/login', {
+    request<API.ResultWrapper<string>>('/api/user/login', {
+      method: 'post',
+      data: {
         username,
         password,
         captchaCode: captcha,
         randomCode: props.randomCode,
-      })
-      .then(({ data }) => {
+      },
+    })
+      .then((data) => {
         location.assign(data.data);
       })
       .catch((e) => {
@@ -178,6 +180,7 @@ const LoginPage: React.FC<Props> = (props) => {
                       htmlType="button"
                       onClick={() => props.setPage?.(1)}
                       block
+                      disabled
                     >
                       注册
                     </Button>
@@ -187,7 +190,7 @@ const LoginPage: React.FC<Props> = (props) => {
             </Form>
             <div
               style={{
-                marginBottom: LoginSetting.row.marginBottom,
+                marginBottom: Setting.row.marginBottom,
               }}
             />
           </>

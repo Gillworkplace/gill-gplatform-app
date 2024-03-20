@@ -13,17 +13,17 @@ export default {
   // 如果需要自定义本地开发服务器  请取消注释按需调整
   dev: {
     '/api/user': {
-      target: 'http://hwyun:9000/',
+      target: 'http://localhost:9000/',
       changeOrigin: true,
       pathRewrite: { '^/api': '/' },
     },
     '/api/cloud': {
-      target: 'http://hwyun:9001/',
+      target: 'http://localhost:9001/',
       changeOrigin: true,
       pathRewrite: { '^/api': '/' },
     },
     '/websocket/media': {
-      target: 'ws://hwyun:9011',
+      target: 'ws://localhost:9011',
       pathRewrite: { '^/websocket': '/' },
       ws: true,
     },

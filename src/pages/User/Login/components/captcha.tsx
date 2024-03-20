@@ -1,4 +1,4 @@
-import LoginSetting from '@/pages/User/Login/setting';
+import { Setting } from '@/pages/setting';
 import { LockOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
 import { Input, Spin } from 'antd';
@@ -25,7 +25,7 @@ const Captcha = React.forwardRef<any, CaptchaProps>((props, ref?) => {
         flex: 2,
       },
       prefix: {
-        marginRight: LoginSetting.inputPrefix.marginRight,
+        marginRight: Setting.inputPrefix.marginRight,
       },
       img: {
         flex: 1,

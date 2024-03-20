@@ -8,13 +8,19 @@ declare namespace API {
     data: T;
   };
 
+  type SelectorData<T> = {
+    defaultValue: string;
+    options: T[];
+  };
+
   type CurrentUser = {
-    uid?: string;
-    username?: string;
-    nickName?: string;
-    avatar?: string;
-    description?: string;
-    access?: string;
+    uid: string;
+    username: string;
+    nickName: string;
+    avatar: string;
+    description: string;
+    home: string;
+    permissions: Set<string>;
   };
 
   type LoginResult = {

@@ -27,7 +27,7 @@ const Login: React.FC = () => {
       },
       main: {
         flex: 1,
-        padding: '64px 0',
+        padding: '8% 0 0 0',
       },
     };
   })();

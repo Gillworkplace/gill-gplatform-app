@@ -12,7 +12,7 @@ export default defineConfig({
    */
   https: {
     key: '0security/ca.key',
-    hosts: ['localhost', '192.168.16.173'],
+    hosts: ['localhost'],
     cert: '0security/ca.crt',
     http2: false,
   },
