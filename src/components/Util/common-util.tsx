@@ -2,6 +2,8 @@
  * 获取随机字符串
  * @param len
  */
+import { history } from '@umijs/max';
+import Cookies from 'js-cookie';
 
 export function randomString(len: number): string {
   let fLen = len || 32;
@@ -18,4 +20,14 @@ export function randomString(len: number): string {
 export function getInt32FromBlob(byteArray: ArrayBuffer): number {
   const dataView = new DataView(byteArray);
   return dataView.getInt32(0);
+}
+
+export function getFromCookieOrUrl(name: string): string | undefined {
+  let value;
+  const params = new URLSearchParams(history.location.search);
+  value = params.get(name);
+  if (value !== null) {
+    return value;
+  }
+  return Cookies.get(name);
 }

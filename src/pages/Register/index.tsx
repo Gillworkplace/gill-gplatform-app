@@ -1,17 +1,16 @@
+import LoadSelector from '@/components/LoadSelector';
+import { randomString } from '@/components/Util/common-util';
 import Captcha, { ICaptcha } from '@/pages/User/Login/components/captcha';
 import { Setting, Tips } from '@/pages/setting';
 import { LoadingOutlined } from '@ant-design/icons';
 import { request } from '@umijs/max';
-import { Alert, Button, Form, Input, Spin, Tooltip } from 'antd';
+import { Button, Form, Input, Spin, Tooltip, notification } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { useRef, useState } from 'react';
 
-type Props = {
-  randomCode: string;
-  setPage?: (page: number) => void;
-};
+const randomCode = randomString(8);
 
-const RegisterPage: React.FC<Props> = (props) => {
+const Register: React.FC = () => {
   const { styles } = createStyles(() => {
     return {
       container: {
@@ -27,14 +26,9 @@ const RegisterPage: React.FC<Props> = (props) => {
       },
       buttonRow: {
         margin: '36px auto',
-        display: 'flex',
-        justifyContent: 'space-between',
         width: Setting.inputContainer.width,
         minWidth: Setting.inputContainer.minWidth,
         maxWidth: Setting.inputContainer.maxWidth,
-      },
-      button: {
-        width: '140px',
       },
     };
   })();
@@ -42,8 +36,8 @@ const RegisterPage: React.FC<Props> = (props) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [nickName, setNickName] = useState('');
+  const [role, setRole] = useState('');
   const [captcha, setCaptcha] = useState('');
-  const [error, setError] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(false);
 
   const captchaRef = useRef<ICaptcha>();
@@ -66,21 +60,26 @@ const RegisterPage: React.FC<Props> = (props) => {
 
   function handleRegister() {
     setLoading(true);
-    request('/api/user/register', {
+    request<API.ResultWrapper<string>>('/api/user/admin/register', {
       method: 'post',
-      params: {
-        randomCode: props.randomCode,
+      data: {
+        randomCode: randomCode,
         captchaCode: captcha,
         username,
         password,
         nickName,
+        role,
       },
     })
-      .then((res) => {
-        console.log(res);
+      .then(() => {
+        notification.info({
+          message: '注册成功',
+        });
       })
       .catch((e) => {
-        setError(e?.response?.data?.message ?? Setting.defaultError);
+        notification.error({
+          message: e?.response?.data?.message ?? '系统异常',
+        });
       })
       .finally(() => {
         captchaRef.current?.refresh();
@@ -96,16 +95,6 @@ const RegisterPage: React.FC<Props> = (props) => {
         spinning={loading}
       >
         <Form layout="horizontal" labelAlign="left">
-          {error && (
-            <Alert
-              style={{
-                marginBottom: 24,
-              }}
-              message={error}
-              type="error"
-              showIcon
-            />
-          )}
           <Form.Item rules={[{ required: true }]} tooltip={Tips.accountTips}>
             <Tooltip trigger={['focus']} title={Tips.accountTips} placement="topLeft">
               <Input
@@ -143,37 +132,23 @@ const RegisterPage: React.FC<Props> = (props) => {
               />
             </Tooltip>
           </Form.Item>
-          <Form.Item>
-            <Captcha
-              ref={captchaRef}
-              randomCode={props.randomCode}
-              onRefresh={handleCaptchaChange}
+          <Form.Item rules={[{ required: true }]}>
+            <LoadSelector
+              url={'/api/user/resource/admin/roles'}
+              defaultValue={''}
+              onChange={(value) => setRole(value)}
+              keyMap={(row) => row.id}
+              labelMap={(row) => row.name}
             />
           </Form.Item>
           <Form.Item>
+            <Captcha ref={captchaRef} randomCode={randomCode} onRefresh={handleCaptchaChange} />
+          </Form.Item>
+          <Form.Item>
             <div className={styles.buttonRow}>
-              <div className={styles.button}>
-                <Button
-                  type="primary"
-                  size="large"
-                  htmlType="submit"
-                  onClick={handleRegister}
-                  block
-                >
-                  注册
-                </Button>
-              </div>
-              <div className={styles.button}>
-                <Button
-                  type="primary"
-                  size="large"
-                  htmlType="button"
-                  onClick={() => props.setPage?.(0)}
-                  block
-                >
-                  返回
-                </Button>
-              </div>
+              <Button type="primary" size="large" htmlType="submit" onClick={handleRegister} block>
+                注册
+              </Button>
             </div>
           </Form.Item>
         </Form>
@@ -182,4 +157,4 @@ const RegisterPage: React.FC<Props> = (props) => {
   );
 };
 
-export default RegisterPage;
+export default Register;

@@ -4,14 +4,14 @@ import { request } from '@umijs/max';
 
 /** 获取当前的用户 GET /api/currentUser */
 export async function currentUser() {
-  return request<API.ResultWrapper<API.CurrentUser>>('/api/user/info', {
+  return request<API.ResultWrapper<API.CurrentUser>>('/api/user/current', {
     method: 'GET',
   });
 }
 
 /** 退出登录接口 POST /api/login/outLogin */
 export async function outLogin(options?: { [key: string]: any }) {
-  return request<Record<string, any>>('/api/login/outLogin', {
+  return request<Record<string, any>>('/api/user/logout', {
     method: 'POST',
     ...(options || {}),
   });

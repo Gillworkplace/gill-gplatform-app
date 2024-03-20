@@ -1,10 +1,12 @@
 import { AvatarDropdown, AvatarName, Footer, Question } from '@/components';
+import { getFromCookieOrUrl } from '@/components/Util/common-util';
 import UnauthPage from '@/pages/403';
 import { getResourcePrefix, currentUser as queryCurrentUser } from '@/services/ant-design-pro/api';
 import { LinkOutlined } from '@ant-design/icons';
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import type { RunTimeLayoutConfig } from '@umijs/max';
 import { Link, history } from '@umijs/max';
+import Cookies from 'js-cookie';
 import Settings from '../config/defaultSettings';
 import { requestConfig } from './requestConfig';
 
@@ -12,7 +14,7 @@ const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
 
 /**
- * @see  https://umijs.org/zh-CN/plugins/plugin-initial-state
+ * @see  https://umijs.org/zh-CN/plugins/plugin-initial-state47=89-0
  * */
 export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
@@ -23,8 +25,15 @@ export async function getInitialState(): Promise<{
   const fetchUserInfo = async () => {
     try {
       const msg = await queryCurrentUser();
-      return msg.data;
+      const currentUser = msg.data;
+      if (currentUser) {
+        currentUser.permissions = new Set<string>(currentUser.permissions);
+      }
+      return currentUser;
     } catch (error) {
+      Cookies.remove('uid');
+      Cookies.remove('tid');
+      Cookies.remove('ct');
       history.push(loginPath);
     }
     return undefined;
@@ -46,6 +55,12 @@ export async function getInitialState(): Promise<{
       currentUser,
       settings: Settings as Partial<LayoutSettings>,
     };
+  } else {
+    let currentUser = await fetchUserInfo();
+    // 如果已登录且在登录页面 则重定向到home界面
+    if (getFromCookieOrUrl('tid') && currentUser) {
+      window.location.assign(currentUser.home);
+    }
   }
   return {
     fetchUserInfo,
@@ -69,6 +84,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => {
       const { location } = history;
       // 如果没有登录，重定向到 login
       if (!initialState?.currentUser && location.pathname !== loginPath) {
+        console.log('onpagechange');
         history.push(loginPath);
       }
     },
